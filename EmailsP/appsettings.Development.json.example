@@ -6,7 +6,6 @@
     }
   },
   "OpenRouter": {
-    "ApiKey": "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",
-    "Model": "deepseek/deepseek-chat"
+    "ApiKey": "sk-or-v1-PEGA-TU-API-KEY-DE-OPENROUTER-AQUI"
   }
 }

@@ -1,5 +1,6 @@
 ﻿using Application.Services;
 using Domain.Interfaces;
+using Infrastructure.AI;
 using Infrastructure.Services;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -118,6 +119,10 @@ builder.Services.AddScoped<ContactService>();
 
 // Auth
 builder.Services.AddScoped<AuthService>();
+
+// AI - Text Refactoring
+builder.Services.AddHttpClient<IAIService, OpenRouterAIService>();
+builder.Services.AddScoped<TextRefactorUseCase>();
 
 var app = builder.Build();
 

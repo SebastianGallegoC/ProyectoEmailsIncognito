@@ -165,6 +165,10 @@
             <input id="subject" type="text" placeholder="Asunto del correo">
             <label>Cuerpo (HTML permitido):</label>
             <textarea id="body" placeholder="Contenido..."></textarea>
+            <div class="toolbar">
+                <button id="aiReformalizeBtn" class="btn btn-secondary">✨ Reformular con IA</button>
+                <span id="aiStatus" class="muted"></span>
+            </div>
         </div>
         <div class="col">
             <h3>Adjuntos</h3>
@@ -322,6 +326,84 @@
 
   // Auto-carga contactos si hay token
   if(jwtInput.value){ loadContacts(); }
+
+  // ========== REFORMULAR CON IA ==========
+  $("aiReformalizeBtn").onclick = async () => {
+    const aiStatus = $("aiStatus");
+    const bodyText = body.value.trim();
+    
+    if (!bodyText) {
+      aiStatus.textContent = "⚠️ Escribe algo primero";
+      aiStatus.className = "err";
+      setTimeout(() => {
+        aiStatus.textContent = "";
+        aiStatus.className = "muted";
+      }, 3000);
+      return;
+    }
+
+    const token = jwtInput.value.trim();
+    if (!token) {
+      aiStatus.textContent = "⚠️ Necesitas estar autenticado";
+      aiStatus.className = "err";
+      setTimeout(() => {
+        aiStatus.textContent = "";
+        aiStatus.className = "muted";
+      }, 3000);
+      return;
+    }
+
+    if (bodyText.length > 2000) {
+      aiStatus.textContent = "⚠️ El texto es muy largo (máx. 2000 caracteres)";
+      aiStatus.className = "err";
+      setTimeout(() => {
+        aiStatus.textContent = "";
+        aiStatus.className = "muted";
+      }, 3000);
+      return;
+    }
+
+    aiStatus.textContent = "🤖 Reformulando con IA... (puede tardar unos segundos)";
+    aiStatus.className = "muted";
+    $("aiReformalizeBtn").disabled = true;
+
+    try {
+      const res = await fetch("/api/AI/refactor", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ text: bodyText })
+      });
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`Error ${res.status}: ${errorText}`);
+      }
+
+      const data = await res.json();
+      body.value = data.formalText;
+      aiStatus.textContent = "✅ Texto reformulado exitosamente";
+      aiStatus.className = "ok";
+
+      setTimeout(() => {
+        aiStatus.textContent = "";
+        aiStatus.className = "muted";
+      }, 5000);
+
+    } catch (error) {
+      console.error(error);
+      aiStatus.textContent = `❌ Error: ${error.message}`;
+      aiStatus.className = "err";
+      setTimeout(() => {
+        aiStatus.textContent = "";
+        aiStatus.className = "muted";
+      }, 5000);
+    } finally {
+      $("aiReformalizeBtn").disabled = false;
+    }
+  };
 })();
     </script>
 </body>
