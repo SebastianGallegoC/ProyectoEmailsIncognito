@@ -13,17 +13,17 @@ namespace Application.Services
             _repo = repo;
         }
 
-        public async Task<ContactResponse> CreateAsync(CreateContactRequest req, CancellationToken ct = default)
+        public async Task<ContactResponse> CreateAsync(int usuarioId, CreateContactRequest req, CancellationToken ct = default)
         {
-            if (await _repo.EmailExistsAsync(req.Email, null, ct))
+            if (await _repo.EmailExistsAsync(usuarioId, req.Email, null, ct))
                 throw new InvalidOperationException("Ya existe un contacto con ese correo.");
 
             var entity = new Contact
             {
+                UsuarioId = usuarioId,
                 Name = req.Name.Trim(),
                 Email = req.Email.Trim(),
-                Phone = req.Phone?.Trim(),
-                Notes = req.Notes?.Trim(),
+                PhoneNumber = req.PhoneNumber?.Trim(),
                 IsFavorite = req.IsFavorite,
                 IsBlocked = req.IsBlocked
             };
@@ -32,15 +32,15 @@ namespace Application.Services
             return Map(saved);
         }
 
-        public async Task<ContactResponse?> GetAsync(Guid id, CancellationToken ct = default)
+        public async Task<ContactResponse?> GetAsync(int id, int usuarioId, CancellationToken ct = default)
         {
-            var c = await _repo.GetByIdAsync(id, ct);
+            var c = await _repo.GetByIdAsync(id, usuarioId, ct);
             return c is null ? null : Map(c);
         }
 
-        public async Task<PagedResult<ContactResponse>> SearchAsync(string? q, int page, int pageSize, CancellationToken ct = default)
+        public async Task<PagedResult<ContactResponse>> SearchAsync(int usuarioId, string? q, int page, int pageSize, CancellationToken ct = default)
         {
-            var (items, total) = await _repo.SearchAsync(q, page, pageSize, ct);
+            var (items, total) = await _repo.SearchAsync(usuarioId, q, page, pageSize, ct);
             return new PagedResult<ContactResponse>
             {
                 Items = items.Select(Map).ToArray(),
@@ -50,38 +50,35 @@ namespace Application.Services
             };
         }
 
-        public async Task<ContactResponse> UpdateAsync(Guid id, UpdateContactRequest req, CancellationToken ct = default)
+        public async Task<ContactResponse> UpdateAsync(int id, int usuarioId, UpdateContactRequest req, CancellationToken ct = default)
         {
-            var entity = await _repo.GetByIdAsync(id, ct) ?? throw new KeyNotFoundException("Contacto no encontrado.");
+            var entity = await _repo.GetByIdAsync(id, usuarioId, ct) 
+                ?? throw new KeyNotFoundException("Contacto no encontrado.");
 
-            if (await _repo.EmailExistsAsync(req.Email, id, ct))
+            if (await _repo.EmailExistsAsync(usuarioId, req.Email, id, ct))
                 throw new InvalidOperationException("Ya existe otro contacto con ese correo.");
 
             entity.Name = req.Name.Trim();
             entity.Email = req.Email.Trim();
-            entity.Phone = req.Phone?.Trim();
-            entity.Notes = req.Notes?.Trim();
+            entity.PhoneNumber = req.PhoneNumber?.Trim();
             entity.IsFavorite = req.IsFavorite;
             entity.IsBlocked = req.IsBlocked;
-            entity.UpdatedAt = DateTime.UtcNow;
 
             await _repo.UpdateAsync(entity, ct);
             return Map(entity);
         }
 
-        public Task DeleteAsync(Guid id, CancellationToken ct = default) => _repo.DeleteAsync(id, ct);
+        public Task DeleteAsync(int id, int usuarioId, CancellationToken ct = default) 
+            => _repo.DeleteAsync(id, usuarioId, ct);
 
         private static ContactResponse Map(Contact c) => new()
         {
             Id = c.Id,
             Name = c.Name,
             Email = c.Email,
-            Phone = c.Phone,
-            Notes = c.Notes,
+            PhoneNumber = c.PhoneNumber,
             IsFavorite = c.IsFavorite,
-            IsBlocked = c.IsBlocked,
-            CreatedAt = c.CreatedAt,
-            UpdatedAt = c.UpdatedAt
+            IsBlocked = c.IsBlocked
         };
     }
 }
