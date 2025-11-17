@@ -11,10 +11,7 @@ namespace Application.DTOs
         public string Email { get; set; } = null!;
 
         [StringLength(50)]
-        public string? Phone { get; set; }
-
-        [StringLength(1000)]
-        public string? Notes { get; set; }
+        public string? PhoneNumber { get; set; }
 
         public bool IsFavorite { get; set; }
         public bool IsBlocked { get; set; }
