@@ -1,6 +1,7 @@
 ﻿using Application.DTOs;
 using Application.Services;
 using Domain.Interfaces;
+using EmailsP.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -49,7 +50,8 @@ namespace EmailsP.Controllers
 
             if (request.ToContactNames != null && request.ToContactNames.Count > 0)
             {
-                var emailsByNames = await _contacts.GetEmailsByNamesAsync(request.ToContactNames, allowPartialMatch: true);
+                var usuarioId = User.GetUsuarioId();
+                var emailsByNames = await _contacts.GetEmailsByNamesAsync(usuarioId, request.ToContactNames, allowPartialMatch: true);
                 recipients.AddRange(emailsByNames);
                 if (emailsByNames.Count == 0)
                     return BadRequest($"No se hallaron correos para los nombres: {string.Join(", ", request.ToContactNames)}");
@@ -57,7 +59,8 @@ namespace EmailsP.Controllers
 
             if (request.ToContactIds != null && request.ToContactIds.Count > 0)
             {
-                var emailsByIds = await _contacts.GetEmailsByIdsAsync(request.ToContactIds);
+                var usuarioId = User.GetUsuarioId();
+                var emailsByIds = await _contacts.GetEmailsByIdsAsync(usuarioId, request.ToContactIds);
                 recipients.AddRange(emailsByIds);
                 if (emailsByIds.Count == 0)
                     return BadRequest("Ningún ID de contacto resolvió un correo.");
