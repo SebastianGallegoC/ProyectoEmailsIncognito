@@ -35,7 +35,14 @@ TaskScheduler.UnobservedTaskException += (s, e) =>
 var builder = WebApplication.CreateBuilder(args);
 
 // ---------- Controllers + Swagger ----------
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        options.JsonSerializerOptions.WriteIndented = false;
+        // No escapar caracteres unicode para manejar mejor textos en español
+        options.JsonSerializerOptions.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -109,7 +116,7 @@ builder.Services.AddAuthorization();
 // ---------- DI (Infraestructura + Aplicación) ----------
 // Email
 builder.Services.AddScoped<IEmailService, GmailSenderService>();     // Envío real
-// builder.Services.AddScoped<IEmailService, NullEmailService>();    // ← alterna para diagnóstico si lo necesitas
+// builder.Services.AddScoped<IEmailService, NullEmailService>();    // ← Debugging
 builder.Services.AddScoped<IEmailRepository, EmailRepository>();
 builder.Services.AddScoped<EmailSenderUseCase>();
 
@@ -120,9 +127,13 @@ builder.Services.AddScoped<ContactService>();
 // Auth
 builder.Services.AddScoped<AuthService>();
 
-// AI - Text Refactoring
+// AI - Text Refactoring (DeepSeek)
 builder.Services.AddHttpClient<IAIService, OpenRouterAIService>();
 builder.Services.AddScoped<TextRefactorUseCase>();
+
+// AI - Consequence Analysis (Llama 3.2 3B)
+builder.Services.AddHttpClient<IConsequenceAnalyzerService, ConsequenceAnalyzerService>();
+builder.Services.AddScoped<ConsequenceAnalyzerUseCase>();
 
 var app = builder.Build();
 

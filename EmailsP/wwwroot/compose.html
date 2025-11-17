@@ -83,31 +83,97 @@
             background: #dc3545
         }
 
+        .btn-warning {
+            background: #ffc107;
+            color: #000
+        }
+
+        .btn-success {
+            background: #198754
+        }
+
         .muted {
             color: #666;
             font-size: .9rem
         }
 
-        .stack {
-            display: flex;
-            flex-direction: column;
-            gap: 8px
+        .analysis-panel {
+            display: none;
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 16px;
         }
 
-        .toolbar {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            margin: 8px 0
+        .analysis-panel.show {
+            display: block;
         }
 
-        .ok {
-            color: #0a7d00
+        .risk-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-right: 8px;
         }
 
-        .err {
-            color: #b00020;
-            white-space: pre-wrap
+        .risk-low {
+            background: #d1e7dd;
+            color: #0f5132;
+        }
+
+        .risk-medium {
+            background: #fff3cd;
+            color: #664d03;
+        }
+
+        .risk-high {
+            background: #f8d7da;
+            color: #842029;
+        }
+
+        .risk-critical {
+            background: #dc3545;
+            color: #fff;
+        }
+
+        .analysis-section {
+            margin: 12px 0;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .analysis-section h4 {
+            margin: 0 0 8px 0;
+            font-size: 1rem;
+        }
+
+        .analysis-section ul {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+
+        .analysis-section li {
+            margin: 4px 0;
+        }
+
+        .recommendation-box {
+            background: #e7f3ff;
+            border-left: 4px solid #0d6efd;
+            padding: 12px;
+            margin: 12px 0;
+            border-radius: 4px;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            margin: 12px 0;
+            border-radius: 4px;
         }
 
         .card {
@@ -167,7 +233,14 @@
             <textarea id="body" placeholder="Contenido..."></textarea>
             <div class="toolbar">
                 <button id="aiReformalizeBtn" class="btn btn-secondary">✨ Reformular con IA</button>
+                <button id="aiAnalyzeBtn" class="btn btn-warning">🚨 Analizar Consecuencias</button>
                 <span id="aiStatus" class="muted"></span>
+            </div>
+            
+            <!-- Panel de Análisis de Consecuencias -->
+            <div id="analysisPanel" class="analysis-panel">
+                <h3>🚨 Análisis de Consecuencias</h3>
+                <div id="analysisContent"></div>
             </div>
         </div>
         <div class="col">
@@ -195,6 +268,8 @@
   const files = $("files");
   const search = $("search");
   const result = $("result");
+  const analysisPanel = $("analysisPanel");
+  const analysisContent = $("analysisContent");
 
   let TO = []; // emails seleccionados
 
@@ -404,6 +479,304 @@
       $("aiReformalizeBtn").disabled = false;
     }
   };
+
+  // ========== ANALIZAR CONSECUENCIAS CON IA ==========
+  $("aiAnalyzeBtn").onclick = async () => {
+    const aiStatus = $("aiStatus");
+    let bodyText = body.value.trim();
+    
+    if (!bodyText) {
+      aiStatus.textContent = "⚠️ Escribe algo primero";
+      aiStatus.className = "err";
+      setTimeout(() => {
+        aiStatus.textContent = "";
+        aiStatus.className = "muted";
+      }, 3000);
+      return;
+    }
+
+    const token = jwtInput.value.trim();
+    if (!token) {
+      aiStatus.textContent = "⚠️ Necesitas estar autenticado";
+      aiStatus.className = "err";
+      setTimeout(() => {
+        aiStatus.textContent = "";
+        aiStatus.className = "muted";
+      }, 3000);
+      return;
+    }
+
+    if (bodyText.length > 5000) {
+      aiStatus.textContent = "⚠️ El texto es muy largo (máx. 5000 caracteres)";
+      aiStatus.className = "err";
+      setTimeout(() => {
+        aiStatus.textContent = "";
+        aiStatus.className = "muted";
+      }, 3000);
+      return;
+    }
+
+    // IMPORTANTE: Normalizar saltos de línea a un solo tipo
+    bodyText = bodyText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+    aiStatus.textContent = "🤖 Analizando consecuencias... (puede tardar 10-15 segundos)";
+    aiStatus.className = "muted";
+    $("aiAnalyzeBtn").disabled = true;
+
+    try {
+      // Crear el request body manualmente para asegurar serialización correcta
+      const requestPayload = JSON.stringify({
+        text: bodyText,
+        context: "workplace",
+        country: "CO"
+      });
+
+      console.log("Sending payload:", requestPayload.substring(0, 200) + "...");
+
+      const res = await fetch("/api/AI/analyze-consequences", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        body: requestPayload
+      });
+
+      console.log("Response status:", res.status);
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("Error response:", errorText);
+        throw new Error(`Error ${res.status}: ${errorText}`);
+      }
+
+      const analysis = await res.json();
+      
+      // Renderizar análisis
+      analysisContent.innerHTML = renderAnalysis(analysis);
+      analysisPanel.classList.add('show');
+      
+      // Scroll al panel
+      analysisPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      
+      aiStatus.textContent = "✅ Análisis completado";
+      aiStatus.className = "ok";
+
+      setTimeout(() => {
+        aiStatus.textContent = "";
+        aiStatus.className = "muted";
+      }, 5000);
+
+    } catch (error) {
+      console.error("Full error:", error);
+      aiStatus.textContent = `❌ Error: ${error.message}`;
+      aiStatus.className = "err";
+      analysisPanel.classList.remove('show');
+      setTimeout(() => {
+        aiStatus.textContent = "";
+        aiStatus.className = "muted";
+      }, 5000);
+    } finally {
+      $("aiAnalyzeBtn").disabled = false;
+    }
+  };
+
+  // Función para renderizar el análisis
+  function renderAnalysis(analysis) {
+    const getRiskClass = (level) => {
+      const levelLower = level.toLowerCase();
+      if (levelLower === 'low') return 'risk-low';
+      if (levelLower === 'medium') return 'risk-medium';
+      if (levelLower === 'high') return 'risk-high';
+      return 'risk-critical';
+    };
+
+    const getRiskIcon = (level) => {
+      const levelLower = level.toLowerCase();
+      if (levelLower === 'low') return '🟢';
+      if (levelLower === 'medium') return '🟡';
+      if (levelLower === 'high') return '🟠';
+      return '🔴';
+    };
+
+    const getRecommendationIcon = (rec) => {
+      if (rec === 'Send') return '✅';
+      if (rec === 'SendWithCaution') return '⚠️';
+      if (rec === 'Revise') return '🔄';
+      return '❌';
+    };
+
+    const getStatusIcon = (status) => {
+      if (status === 'Optimal') return '✨';
+      if (status === 'NeedsImprovement') return '🔧';
+      return '🚨';
+    };
+
+    let html = '';
+
+    // NUEVO: Resumen Ejecutivo Primero
+    if (analysis.actionableRecommendations) {
+      const ar = analysis.actionableRecommendations;
+      const statusClass = ar.messageStatus === 'Optimal' ? 'recommendation-box' : 
+                         ar.messageStatus === 'Critical' ? 'warning-box' : 'analysis-section';
+      
+      html += `<div class="${statusClass}" style="margin-bottom: 20px; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 12px;">
+        <h3 style="margin: 0 0 12px 0; color: white;">
+          ${getStatusIcon(ar.messageStatus)} RESUMEN EJECUTIVO
+        </h3>
+        <p style="font-size: 1.1rem; margin-bottom: 16px;">${ar.executiveSummary}</p>
+        <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.2); padding: 12px; border-radius: 8px;">
+          <span style="font-size: 1.2rem; font-weight: bold;">
+            ${getRecommendationIcon(ar.finalRecommendation)} ${ar.finalRecommendation}
+          </span>
+          <span class="risk-badge" style="background: rgba(255,255,255,0.3); color: white;">
+            Estado: ${ar.messageStatus}
+          </span>
+        </div>
+      </div>`;
+    }
+
+    // Resumen General (si no recomienda enviar)
+    if (!analysis.overall.recommendSending) {
+      html += `<div class="warning-box">
+        <strong>⚠️ NO SE RECOMIENDA ENVIAR ESTE MENSAJE</strong>
+        <p>${analysis.overall.summary}</p>
+      </div>`;
+    } else {
+      html += `<div class="recommendation-box">
+        <strong>✅ Mensaje puede ser enviado con precauciones</strong>
+        <p>${analysis.overall.summary}</p>
+      </div>`;
+    }
+
+    // Riesgo Legal
+    html += `<div class="analysis-section">
+      <h4>⚖️ Riesgo Legal <span class="risk-badge ${getRiskClass(analysis.legalRisk.level)}">
+        ${getRiskIcon(analysis.legalRisk.level)} ${analysis.legalRisk.level}
+      </span></h4>
+      <p>${analysis.legalRisk.description}</p>
+      ${analysis.legalRisk.potentialIssues.length > 0 ? `
+        <strong>Problemas Potenciales:</strong>
+        <ul>${analysis.legalRisk.potentialIssues.map(i => `<li>${i}</li>`).join('')}</ul>
+      ` : ''}
+      ${analysis.legalRisk.legalReferences.length > 0 ? `
+        <strong>Referencias Legales:</strong>
+        <ul>${analysis.legalRisk.legalReferences.map(r => `<li>${r}</li>`).join('')}</ul>
+      ` : ''}
+      ${analysis.legalRisk.practicalReality ? `
+        <p><strong>Realidad Práctica:</strong> ${analysis.legalRisk.practicalReality}</p>
+      ` : ''}
+    </div>`;
+
+    // Impacto Emocional
+    html += `<div class="analysis-section">
+      <h4>😤 Impacto Emocional <span class="risk-badge ${getRiskClass(analysis.emotionalImpact.level)}">
+        ${getRiskIcon(analysis.emotionalImpact.level)} ${analysis.emotionalImpact.level}
+      </span></h4>
+      <p>${analysis.emotionalImpact.description}</p>
+      <p><strong>Tono Detectado:</strong> ${analysis.emotionalImpact.detectedTone}</p>
+      ${analysis.emotionalImpact.triggerWords.length > 0 ? `
+        <p><strong>Palabras Sensibles:</strong> ${analysis.emotionalImpact.triggerWords.join(', ')}</p>
+      ` : ''}
+      ${analysis.emotionalImpact.culturalContext ? `
+        <p><strong>Contexto Cultural:</strong> ${analysis.emotionalImpact.culturalContext}</p>
+      ` : ''}
+    </div>`;
+
+    // Efectividad
+    html += `<div class="analysis-section">
+      <h4>✅ Efectividad del Mensaje</h4>
+      <p><strong>Probabilidad de Acción:</strong> ${analysis.effectiveness.probabilityOfAction}%</p>
+      <p>${analysis.effectiveness.reasoning}</p>
+      ${analysis.effectiveness.missingElements.length > 0 ? `
+        <strong>Elementos Faltantes:</strong>
+        <ul>${analysis.effectiveness.missingElements.map(e => `<li>${e}</li>`).join('')}</ul>
+      ` : ''}
+      ${analysis.effectiveness.strengthPoints.length > 0 ? `
+        <strong>Fortalezas:</strong>
+        <ul>${analysis.effectiveness.strengthPoints.map(s => `<li>${s}</li>`).join('')}</ul>
+      ` : ''}
+      ${analysis.effectiveness.localRecommendations ? `
+        <p><strong>Recomendaciones Locales:</strong> ${analysis.effectiveness.localRecommendations}</p>
+      ` : ''}
+    </div>`;
+
+    // Riesgo de Represalias
+    html += `<div class="analysis-section">
+      <h4>🎯 Riesgo de Represalias <span class="risk-badge ${getRiskClass(analysis.backlash.level)}">
+        ${getRiskIcon(analysis.backlash.level)} ${analysis.backlash.level}
+      </span></h4>
+      ${analysis.backlash.potentialConsequences.length > 0 ? `
+        <strong>Consecuencias Potenciales:</strong>
+        <ul>${analysis.backlash.potentialConsequences.map(c => `<li>${c}</li>`).join('')}</ul>
+      ` : ''}
+      <p><strong>Consejo de Mitigación:</strong> ${analysis.backlash.mitigationAdvice}</p>
+      ${analysis.backlash.localProtections ? `
+        <p><strong>Protecciones Disponibles:</strong> ${analysis.backlash.localProtections}</p>
+      ` : ''}
+    </div>`;
+
+    // NUEVO: Recomendaciones Accionables (al final, destacado)
+    if (analysis.actionableRecommendations) {
+      const ar = analysis.actionableRecommendations;
+      
+      html += `<div style="background: #f0f9ff; border: 2px solid #3b82f6; border-radius: 12px; padding: 20px; margin-top: 20px;">
+        <h3 style="color: #1e40af; margin-top: 0;">📋 PLAN DE ACCIÓN</h3>`;
+      
+      if (ar.strengthsToKeep && ar.strengthsToKeep.length > 0) {
+        html += `<div style="margin-bottom: 16px;">
+          <h4 style="color: #059669; margin-bottom: 8px;">✅ Qué Mantener (Está Bien)</h4>
+          <ul style="color: #065f46;">${ar.strengthsToKeep.map(s => `<li>${s}</li>`).join('')}</ul>
+        </div>`;
+      }
+      
+      if (ar.canImprove && ar.canImprove.length > 0) {
+        html += `<div style="margin-bottom: 16px;">
+          <h4 style="color: #0891b2; margin-bottom: 8px;">🔧 Qué Puedes Mejorar (Opcional)</h4>
+          <ul style="color: #0e7490;">${ar.canImprove.map(c => `<li>${c}</li>`).join('')}</ul>
+        </div>`;
+      }
+      
+      if (ar.mustImprove && ar.mustImprove.length > 0) {
+        html += `<div style="margin-bottom: 16px;">
+          <h4 style="color: #dc2626; margin-bottom: 8px;">🚨 Qué DEBES Mejorar (Crítico)</h4>
+          <ul style="color: #991b1b; font-weight: 600;">${ar.mustImprove.map(m => `<li>${m}</li>`).join('')}</ul>
+        </div>`;
+      }
+      
+      html += `<div style="background: white; padding: 12px; border-radius: 8px; margin-top: 16px; text-align: center;">
+        <strong style="font-size: 1.1rem; color: #1e40af;">
+          ${getRecommendationIcon(ar.finalRecommendation)} Recomendación Final: ${ar.finalRecommendation}
+        </strong>
+      </div>`;
+      
+      html += `</div>`;
+    }
+
+    // Prioridades y Próximos Pasos
+    if (analysis.overall.topPriorities.length > 0) {
+      html += `<div class="recommendation-box">
+        <strong>🎯 Prioridades Principales:</strong>
+        <ol>${analysis.overall.topPriorities.map(p => `<li>${p}</li>`).join('')}</ol>
+      </div>`;
+    }
+
+    if (analysis.overall.nextSteps) {
+      html += `<div class="recommendation-box">
+        <strong>📋 Próximos Pasos Recomendados:</strong>
+        <p>${analysis.overall.nextSteps}</p>
+      </div>`;
+    }
+
+    // Botón para cerrar panel
+    html += `<div style="text-align: center; margin-top: 16px;">
+      <button class="btn btn-secondary" onclick="document.getElementById('analysisPanel').classList.remove('show')">
+        Cerrar Análisis
+      </button>
+    </div>`;
+
+    return html;
+  }
 })();
     </script>
 </body>
