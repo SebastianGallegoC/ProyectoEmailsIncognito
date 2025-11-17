@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Http;
-using System;
 using System.Collections.Generic;
 
 namespace Application.DTOs
@@ -12,7 +11,7 @@ namespace Application.DTOs
         public List<string>? ToContactNames { get; set; }
 
         // Compatibilidad si quieres seguir usando IDs
-        public List<Guid>? ToContactIds { get; set; }
+        public List<int>? ToContactIds { get; set; }
 
         public string Subject { get; set; } = string.Empty;
         public string? Body { get; set; }
