@@ -1,18 +1,15 @@
-﻿using Application.Services;
+using Application.Services;
 using Domain.Interfaces;
 using Infrastructure.AI;
 using Infrastructure.Services;
-
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-
 using System.Text;
 using System.Text.Json;
 
-// ====== Manejadores globales para que el host no muera por excepciones en hilos de fondo (DEV) ======
 AppDomain.CurrentDomain.UnhandledException += (s, e) =>
 {
     try
@@ -34,13 +31,11 @@ TaskScheduler.UnobservedTaskException += (s, e) =>
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ---------- Controllers + Swagger ----------
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
         options.JsonSerializerOptions.WriteIndented = false;
-        // No escapar caracteres unicode para manejar mejor textos en español
         options.JsonSerializerOptions.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
     });
 builder.Services.AddEndpointsApiExplorer();
@@ -55,7 +50,7 @@ builder.Services.AddSwaggerGen(options =>
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.Http,
-        Description = "Pega SOLO el token (Swagger agregará 'Bearer ').",
+        Description = "Pega SOLO el token (Swagger agregar� 'Bearer ').",
         Reference = new OpenApiReference { Id = JwtBearerDefaults.AuthenticationScheme, Type = ReferenceType.SecurityScheme }
     };
 
@@ -63,29 +58,26 @@ builder.Services.AddSwaggerGen(options =>
     options.AddSecurityRequirement(new OpenApiSecurityRequirement { { jwt, Array.Empty<string>() } });
 });
 
-// ---------- Límites de subida (adjuntos) ----------
 builder.Services.Configure<FormOptions>(o =>
 {
-    o.MultipartBodyLengthLimit = 100 * 1024 * 1024; // 100 MB
+    o.MultipartBodyLengthLimit = 100 * 1024 * 1024;
     o.ValueLengthLimit = int.MaxValue;
     o.MemoryBufferThreshold = int.MaxValue;
 });
 builder.WebHost.ConfigureKestrel(o =>
 {
-    o.Limits.MaxRequestBodySize = 100L * 1024L * 1024L; // 100 MB
+    o.Limits.MaxRequestBodySize = 100L * 1024L * 1024L;
 });
 builder.Services.Configure<IISServerOptions>(o =>
 {
     o.MaxRequestBodySize = 100L * 1024L * 1024L;
 });
 
-// ---------- CORS (útil si pruebas desde otro origen distinto al propio host) ----------
 builder.Services.AddCors(opt =>
 {
     opt.AddPolicy("DevAll", p => p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
 });
 
-// ---------- JWT ----------
 var jwtSection = builder.Configuration.GetSection("Jwt");
 var keyBytes = Encoding.UTF8.GetBytes(jwtSection["Key"] ?? "clave-secreta-larga-por-defecto");
 
@@ -93,19 +85,16 @@ builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        options.RequireHttpsMetadata = false; // solo DEV/local
+        options.RequireHttpsMetadata = false;
         options.SaveToken = true;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
-
             ValidateIssuer = true,
             ValidIssuer = jwtSection["Issuer"],
-
             ValidateAudience = true,
             ValidAudience = jwtSection["Audience"],
-
             ValidateLifetime = true,
             ClockSkew = TimeSpan.Zero
         };
@@ -113,25 +102,20 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
-// ---------- DI (Infraestructura + Aplicación) ----------
-// Email
-builder.Services.AddScoped<IEmailService, GmailSenderService>();     // Envío real
-// builder.Services.AddScoped<IEmailService, NullEmailService>();    // ← Debugging
+builder.Services.AddScoped<IEmailService, GmailSenderService>();
 builder.Services.AddScoped<IEmailRepository, EmailRepository>();
 builder.Services.AddScoped<EmailSenderUseCase>();
 
-// Contactos (persistencia JSON)
-builder.Services.AddScoped<IContactRepository, ContactRepository>();
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<UsuarioService>();
+
+builder.Services.AddScoped<IContactRepository, ContactRepositoryPostgres>();
 builder.Services.AddScoped<ContactService>();
 
-// Auth
-builder.Services.AddScoped<AuthService>();
-
-// AI - Text Refactoring (DeepSeek)
 builder.Services.AddHttpClient<IAIService, OpenRouterAIService>();
 builder.Services.AddScoped<TextRefactorUseCase>();
 
-// AI - Consequence Analysis (Llama 3.2 3B)
 builder.Services.AddHttpClient<IConsequenceAnalyzerService, ConsequenceAnalyzerService>();
 builder.Services.AddScoped<ConsequenceAnalyzerUseCase>();
 
@@ -144,7 +128,6 @@ if (app.Environment.IsDevelopment())
     app.UseCors("DevAll");
 }
 
-// ---------- Middleware global de excepciones (responde 500 JSON en vez de cerrar conexión) ----------
 app.UseExceptionHandler(errorApp =>
 {
     errorApp.Run(async context =>
@@ -161,11 +144,8 @@ app.UseExceptionHandler(errorApp =>
 });
 
 app.UseHttpsRedirection();
-
-// ---------- Archivos estáticos (wwwroot) para la mini UI /compose.html ----------
 app.UseStaticFiles();
 
-// (Opcional) redirigir raíz a la UI de envío
 app.MapGet("/", ctx => { ctx.Response.Redirect("/compose.html"); return Task.CompletedTask; });
 
 app.UseAuthentication();
