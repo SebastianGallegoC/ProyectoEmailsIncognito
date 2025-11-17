@@ -1,5 +1,6 @@
 ﻿using Application.DTOs;
 using Application.Services;
+using EmailsP.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,7 +9,7 @@ namespace EmailsP.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    [Authorize] // requiere JWT
+    [Authorize]
     public class ContactsController : ControllerBase
     {
         private readonly ContactService _svc;
@@ -23,16 +24,18 @@ namespace EmailsP.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Create([FromBody] CreateContactRequest req)
         {
-            var created = await _svc.CreateAsync(req);
+            var usuarioId = User.GetUsuarioId();
+            var created = await _svc.CreateAsync(usuarioId, req);
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
 
-        [HttpGet("{id:guid}")]
+        [HttpGet("{id:int}")]
         [ProducesResponseType(typeof(ContactResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetById([FromRoute] Guid id)
+        public async Task<IActionResult> GetById([FromRoute] int id)
         {
-            var item = await _svc.GetAsync(id);
+            var usuarioId = User.GetUsuarioId();
+            var item = await _svc.GetAsync(id, usuarioId);
             if (item is null) return NotFound();
             return Ok(item);
         }
@@ -41,27 +44,30 @@ namespace EmailsP.Controllers
         [ProducesResponseType(typeof(PagedResult<ContactResponse>), StatusCodes.Status200OK)]
         public async Task<IActionResult> Search([FromQuery] string? q, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
+            var usuarioId = User.GetUsuarioId();
             page = page <= 0 ? 1 : page;
             pageSize = pageSize <= 0 || pageSize > 200 ? 20 : pageSize;
 
-            var result = await _svc.SearchAsync(q, page, pageSize);
+            var result = await _svc.SearchAsync(usuarioId, q, page, pageSize);
             return Ok(result);
         }
 
-        [HttpPut("{id:guid}")]
+        [HttpPut("{id:int}")]
         [ProducesResponseType(typeof(ContactResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateContactRequest req)
+        public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateContactRequest req)
         {
-            var updated = await _svc.UpdateAsync(id, req);
+            var usuarioId = User.GetUsuarioId();
+            var updated = await _svc.UpdateAsync(id, usuarioId, req);
             return Ok(updated);
         }
 
-        [HttpDelete("{id:guid}")]
+        [HttpDelete("{id:int}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public async Task<IActionResult> Delete([FromRoute] Guid id)
+        public async Task<IActionResult> Delete([FromRoute] int id)
         {
-            await _svc.DeleteAsync(id);
+            var usuarioId = User.GetUsuarioId();
+            await _svc.DeleteAsync(id, usuarioId);
             return NoContent();
         }
     }
