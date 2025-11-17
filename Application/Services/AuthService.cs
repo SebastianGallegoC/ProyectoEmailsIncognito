@@ -1,32 +1,46 @@
 ﻿using Application.DTOs;
+using BCrypt.Net;
+using Domain.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Application.Services
 {
     public class AuthService
     {
         private readonly IConfiguration _configuration;
+        private readonly IUsuarioRepository _usuarioRepository;
 
-        public AuthService(IConfiguration configuration)
+        public AuthService(IConfiguration configuration, IUsuarioRepository usuarioRepository)
         {
             _configuration = configuration;
+            _usuarioRepository = usuarioRepository;
         }
 
-        public LoginResponse? Authenticate(LoginRequest request)
+        public async Task<LoginResponse?> AuthenticateAsync(LoginRequest request)
         {
-            // Validación simulada
-            if (request.Username != "admin" || request.Password != "1234")
+            // Buscar usuario en base de datos
+            var usuario = await _usuarioRepository.GetByUsernameAsync(request.Username);
+            
+            if (usuario == null || !usuario.EstaActivo)
                 return null;
 
+            // Verificar contraseña con BCrypt
+            if (!BCrypt.Net.BCrypt.Verify(request.Password, usuario.PasswordHash))
+                return null;
+
+            // Crear claims
             var claims = new[]
             {
-                new Claim(ClaimTypes.Name, request.Username),
-                new Claim(ClaimTypes.Role, "Admin")
+                new Claim(ClaimTypes.Name, usuario.Username),
+                new Claim(ClaimTypes.Email, usuario.Email),
+                new Claim(ClaimTypes.Role, usuario.Rol),
+                new Claim("userId", usuario.Id.ToString())
             };
 
             var key = new SymmetricSecurityKey(
