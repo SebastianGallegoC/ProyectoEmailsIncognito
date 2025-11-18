@@ -128,43 +128,10 @@ jobs:
 
       - name: Deploy to server
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} '
             cd /home/gallegoc/ProyectoEmailsIncognito &&
             git pull origin master &&
-            
-            # Crear appsettings.Development.json con los secrets
-            cat > EmailsP/EmailsP/appsettings.Development.json << 'APPSETTINGS_EOF'
-            {
-              \"Logging\": {
-                \"LogLevel\": {
-                  \"Default\": \"Information\",
-                  \"Microsoft.AspNetCore\": \"Warning\"
-                }
-              },
-              \"AllowedHosts\": \"*\",
-              \"ConnectionStrings\": {
-                \"DefaultConnection\": \"${{ secrets.POSTGRES_CONNECTION }}\"
-              },
-              \"Jwt\": {
-                \"Key\": \"${{ secrets.JWT_SECRET }}\",
-                \"Issuer\": \"EmailsPAPI\",
-                \"Audience\": \"EmailsPUsers\"
-              },
-              \"Smtp\": {
-                \"Host\": \"smtp.gmail.com\",
-                \"Port\": \"587\",
-                \"UseStartTls\": \"true\",
-                \"User\": \"${{ secrets.GMAIL_FROM_EMAIL }}\",
-                \"Password\": \"${{ secrets.GMAIL_FROM_PASSWORD }}\"
-              },
-              \"OpenRouter\": {
-                \"ApiKey\": \"${{ secrets.OPENROUTER_API_KEY }}\",
-                \"Model\": \"deepseek/deepseek-chat\",
-                \"AnalyzerModel\": \"deepseek/deepseek-chat\"
-              }
-            }
-            APPSETTINGS_EOF
-            
+            echo "{\"Logging\":{\"LogLevel\":{\"Default\":\"Information\",\"Microsoft.AspNetCore\":\"Warning\"}},\"AllowedHosts\":\"*\",\"ConnectionStrings\":{\"DefaultConnection\":\"${{ secrets.POSTGRES_CONNECTION }}\"},\"Jwt\":{\"Key\":\"${{ secrets.JWT_SECRET }}\",\"Issuer\":\"EmailsPAPI\",\"Audience\":\"EmailsPUsers\"},\"Smtp\":{\"Host\":\"smtp.gmail.com\",\"Port\":\"587\",\"UseStartTls\":\"true\",\"User\":\"${{ secrets.GMAIL_FROM_EMAIL }}\",\"Password\":\"${{ secrets.GMAIL_FROM_PASSWORD }}\"},\"OpenRouter\":{\"ApiKey\":\"${{ secrets.OPENROUTER_API_KEY }}\",\"Model\":\"deepseek/deepseek-chat\",\"AnalyzerModel\":\"deepseek/deepseek-chat\"}}" | jq . > EmailsP/EmailsP/appsettings.Development.json &&
             docker compose pull &&
             docker compose up -d --remove-orphans
-          "
+          '
