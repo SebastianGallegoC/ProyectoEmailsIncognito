@@ -1,0 +1,42 @@
+# Build artifacts
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# VS Code
+.vscode/
+.vs/
+
+# Rider
+.idea/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files (no se copian al contenedor)
+.env
+.env.*
+!.env.example
+
+# Credentials (no se copian al contenedor)
+credentials/
+*.json.user
+appsettings.Development.json

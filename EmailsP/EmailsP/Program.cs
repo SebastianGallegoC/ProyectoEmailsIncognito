@@ -50,7 +50,7 @@ builder.Services.AddSwaggerGen(options =>
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.Http,
-        Description = "Pega SOLO el token (Swagger agregará 'Bearer ').",
+        Description = "Pega SOLO el token (Swagger agregarï¿½ 'Bearer ').",
         Reference = new OpenApiReference { Id = JwtBearerDefaults.AuthenticationScheme, Type = ReferenceType.SecurityScheme }
     };
 
@@ -121,11 +121,13 @@ builder.Services.AddScoped<ConsequenceAnalyzerUseCase>();
 
 var app = builder.Build();
 
+// Habilitar CORS siempre (Development y Production)
+app.UseCors("DevAll");
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    app.UseCors("DevAll");
 }
 
 app.UseExceptionHandler(errorApp =>

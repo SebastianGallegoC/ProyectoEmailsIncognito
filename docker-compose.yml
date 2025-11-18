@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  # ==========================================
+  # Backend API (.NET 8)
+  # ==========================================
+  # NOTA: Monta appsettings.Development.json desde el host
+  #       No necesitas configurar variables de entorno
+  backend:
+    build:
+      context: ./EmailsP
+      dockerfile: Dockerfile
+    container_name: emailsp-backend
+    restart: unless-stopped
+    volumes:
+      # Montar appsettings.Development.json como appsettings.Production.json
+      - ./EmailsP/EmailsP/appsettings.Development.json:/app/appsettings.Production.json:ro
+    environment:
+      # ASP.NET
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+    ports:
+      - "7000:8080"
+    networks:
+      - emailsp-network
+
+  # ==========================================
+  # Frontend (Vue 3 + Nginx)
+  # ==========================================
+  frontend:
+    build:
+      context: ./emailsp-client
+      dockerfile: Dockerfile
+    container_name: emailsp-frontend
+    restart: unless-stopped
+    ports:
+      - "7001:80"
+    depends_on:
+      - backend
+    networks:
+      - emailsp-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+# ==========================================
+# Networks
+# ==========================================
+networks:
+  emailsp-network:
+    driver: bridge
