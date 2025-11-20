@@ -130,6 +130,7 @@ jobs:
             cd /home/gallegoc/ProyectoEmailsIncognito &&
             git pull origin master &&
             mkdir -p EmailsP/EmailsP &&
+            rm -rf EmailsP/EmailsP/appsettings.Development.json &&
             cat > EmailsP/EmailsP/appsettings.Development.json << "EOF"
             {
               "Logging": {
