@@ -127,7 +127,7 @@ jobs:
       - name: Deploy to server
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} '
-            cd /home/gallegoc/ProyectoEmailsIncognito &&
+            cd ${{ secrets.PROJECT_PATH || '~/ProyectoEmailsIncognito' }} &&
             git pull origin master &&
             mkdir -p EmailsP/EmailsP &&
             rm -rf EmailsP/EmailsP/appsettings.Development.json &&
@@ -163,5 +163,7 @@ jobs:
             }
             EOF
             docker compose pull &&
-            docker compose up -d --remove-orphans
+            docker compose up -d --remove-orphans &&
+            echo "=== Containers status ===" &&
+            docker ps | grep emailsp
           '

@@ -7,9 +7,7 @@ services:
   # NOTA: Monta appsettings.Development.json desde el host
   #       No necesitas configurar variables de entorno
   backend:
-    build:
-      context: ./EmailsP
-      dockerfile: Dockerfile
+    image: ${DOCKERHUB_USERNAME:-sebastiangallegoc}/emailsp-backend:latest
     container_name: emailsp-backend
     restart: unless-stopped
     volumes:
@@ -28,9 +26,7 @@ services:
   # Frontend (Vue 3 + Nginx)
   # ==========================================
   frontend:
-    build:
-      context: ./emailsp-client
-      dockerfile: Dockerfile
+    image: ${DOCKERHUB_USERNAME:-sebastiangallegoc}/emailsp-frontend:latest
     container_name: emailsp-frontend
     restart: unless-stopped
     ports:
