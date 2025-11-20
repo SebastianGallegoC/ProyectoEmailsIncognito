@@ -126,44 +126,14 @@ jobs:
 
       - name: Deploy to server
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} '
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
             cd ${{ secrets.PROJECT_PATH || '~/ProyectoEmailsIncognito' }} &&
             git pull origin master &&
             mkdir -p EmailsP/EmailsP &&
             rm -rf EmailsP/EmailsP/appsettings.Development.json &&
-            cat > EmailsP/EmailsP/appsettings.Development.json << "EOF"
-            {
-              "Logging": {
-                "LogLevel": {
-                  "Default": "Information",
-                  "Microsoft.AspNetCore": "Warning"
-                }
-              },
-              "AllowedHosts": "*",
-              "ConnectionStrings": {
-                "DefaultConnection": "${{ secrets.POSTGRES_CONNECTION }}"
-              },
-              "Jwt": {
-                "Key": "${{ secrets.JWT_SECRET }}",
-                "Issuer": "EmailsPAPI",
-                "Audience": "EmailsPUsers"
-              },
-              "Smtp": {
-                "Host": "smtp.gmail.com",
-                "Port": "587",
-                "UseStartTls": "true",
-                "User": "${{ secrets.GMAIL_FROM_EMAIL }}",
-                "Password": "${{ secrets.GMAIL_FROM_PASSWORD }}"
-              },
-              "OpenRouter": {
-                "ApiKey": "${{ secrets.OPENROUTER_API_KEY }}",
-                "Model": "deepseek/deepseek-chat",
-                "AnalyzerModel": "deepseek/deepseek-chat"
-              }
-            }
-            EOF
+            printf '{\"Logging\":{\"LogLevel\":{\"Default\":\"Information\",\"Microsoft.AspNetCore\":\"Warning\"}},\"AllowedHosts\":\"*\",\"ConnectionStrings\":{\"DefaultConnection\":\"%s\"},\"Jwt\":{\"Key\":\"%s\",\"Issuer\":\"EmailsPAPI\",\"Audience\":\"EmailsPUsers\"},\"Smtp\":{\"Host\":\"smtp.gmail.com\",\"Port\":\"587\",\"UseStartTls\":\"true\",\"User\":\"%s\",\"Password\":\"%s\"},\"OpenRouter\":{\"ApiKey\":\"%s\",\"Model\":\"deepseek/deepseek-chat\",\"AnalyzerModel\":\"deepseek/deepseek-chat\"}}' '${{ secrets.POSTGRES_CONNECTION }}' '${{ secrets.JWT_SECRET }}' '${{ secrets.GMAIL_FROM_EMAIL }}' '${{ secrets.GMAIL_FROM_PASSWORD }}' '${{ secrets.OPENROUTER_API_KEY }}' | jq . > EmailsP/EmailsP/appsettings.Development.json &&
             docker compose pull &&
             docker compose up -d --remove-orphans &&
-            echo "=== Containers status ===" &&
-            docker ps | grep emailsp
-          '
+            echo '=== Containers status ===' &&
+            docker ps | grep emailsp || echo 'No emailsp containers running'
+          "
