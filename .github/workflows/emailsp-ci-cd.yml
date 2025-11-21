@@ -132,8 +132,8 @@ jobs:
             mkdir -p EmailsP/EmailsP &&
             rm -rf EmailsP/EmailsP/appsettings.Development.json &&
             printf '{\"Logging\":{\"LogLevel\":{\"Default\":\"Information\",\"Microsoft.AspNetCore\":\"Warning\"}},\"AllowedHosts\":\"*\",\"ConnectionStrings\":{\"DefaultConnection\":\"%s\"},\"Jwt\":{\"Key\":\"%s\",\"Issuer\":\"EmailsPAPI\",\"Audience\":\"EmailsPUsers\"},\"Smtp\":{\"Host\":\"smtp.gmail.com\",\"Port\":\"587\",\"UseStartTls\":\"true\",\"User\":\"%s\",\"Password\":\"%s\"},\"OpenRouter\":{\"ApiKey\":\"%s\",\"Model\":\"deepseek/deepseek-chat\",\"AnalyzerModel\":\"deepseek/deepseek-chat\"}}' '${{ secrets.POSTGRES_CONNECTION }}' '${{ secrets.JWT_SECRET }}' '${{ secrets.GMAIL_FROM_EMAIL }}' '${{ secrets.GMAIL_FROM_PASSWORD }}' '${{ secrets.OPENROUTER_API_KEY }}' | jq . > EmailsP/EmailsP/appsettings.Development.json &&
-            docker compose pull &&
-            docker compose up -d --remove-orphans &&
+            docker compose down &&
+            docker compose up -d --build &&
             echo '=== Containers status ===' &&
             docker ps | grep emailsp || echo 'No emailsp containers running'
           "
