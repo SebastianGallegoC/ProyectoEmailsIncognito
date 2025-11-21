@@ -9,7 +9,7 @@
       </div>
       <div>
         <h1 class="text-3xl font-bold text-[#E8EAED] flex items-center gap-3">
-          Enviar Correo Anónimo.
+          Enviar Correo Anónimo
           <span class="text-sm bg-[#8AB4F8] text-[#202124] px-3 py-1 rounded-full font-normal">🔒 Privado</span>
         </h1>
         <p class="text-[#9AA0A6]">Tu identidad permanecerá oculta • Envío seguro y anónimo</p>
