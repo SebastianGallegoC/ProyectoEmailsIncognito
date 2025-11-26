@@ -4,15 +4,14 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copy solution and project files
-COPY EmailsP.sln ./
+# Copy project files
 COPY Application/Application.csproj ./Application/
 COPY Domain/Domain.csproj ./Domain/
 COPY Infraestructure/Infraestructure.csproj ./Infraestructure/
 COPY EmailsP/EmailsP.csproj ./EmailsP/
 
-# Restore dependencies
-RUN dotnet restore
+# Restore dependencies for the main project
+RUN dotnet restore ./EmailsP/EmailsP.csproj
 
 # Copy all source code
 COPY . .
