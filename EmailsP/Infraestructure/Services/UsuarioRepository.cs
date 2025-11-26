@@ -23,6 +23,13 @@ namespace Infrastructure.Services
             return await connection.QueryFirstOrDefaultAsync<Usuario>(sql, new { Username = username });
         }
 
+        public async Task<Usuario?> GetByEmailAsync(string email)
+        {
+            using var connection = new NpgsqlConnection(_connectionString);
+            const string sql = "SELECT id, username, password_hash AS PasswordHash, email, rol, esta_activo AS EstaActivo, fecha_creacion AS FechaCreacion FROM usuarios WHERE email = @Email AND esta_activo = TRUE";
+            return await connection.QueryFirstOrDefaultAsync<Usuario>(sql, new { Email = email });
+        }
+
         public async Task<Usuario?> GetByIdAsync(int id)
         {
             using var connection = new NpgsqlConnection(_connectionString);

@@ -5,8 +5,8 @@
         public int Id { get; set; }
 
         public int UsuarioId { get; set; } // NUEVO: Relación con usuario
-        public string Name { get; set; } = null!;
-        public string Email { get; set; } = null!;
+        public string Name { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
 
         public string? PhoneNumber { get; set; }
         public string? Notes { get; set; }

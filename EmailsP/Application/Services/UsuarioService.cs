@@ -19,11 +19,15 @@ namespace Application.Services
         public async Task<RegisterResponse> RegisterAsync(RegisterRequest request)
         {
             // Validar si el usuario ya existe
-            var existingUser = await _repository.GetByUsernameAsync(request.Username);
-            if (existingUser != null)
-                throw new InvalidOperationException("El nombre de usuario ya est· en uso");
+            var existingUserByUsername = await _repository.GetByUsernameAsync(request.Username);
+            if (existingUserByUsername != null)
+                throw new InvalidOperationException("El nombre de usuario ya est√° en uso");
 
-            // Hash de la contraseÒa con BCrypt
+            var existingUserByEmail = await _repository.GetByEmailAsync(request.Email);
+            if (existingUserByEmail != null)
+                throw new InvalidOperationException("El email ya est√° en uso");
+
+            // Hash de la contrase√±a con BCrypt
             var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
             // Crear entidad

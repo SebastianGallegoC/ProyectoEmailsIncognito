@@ -40,7 +40,7 @@ namespace EmailsP.Controllers
         /// </summary>
         [HttpPost("register")]
         [AllowAnonymous]
-        [ProducesResponseType(typeof(RegisterResponse), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
@@ -55,8 +55,20 @@ namespace EmailsP.Controllers
 
             try
             {
-                var result = await _usuarioService.RegisterAsync(request);
-                return CreatedAtAction(nameof(Login), new { username = result.Username }, result);
+                var registeredUser = await _usuarioService.RegisterAsync(request);
+
+                // Después del registro, autenticar para obtener el token
+                var loginRequest = new LoginRequest { Username = request.Username, Password = request.Password };
+                var loginResponse = await _authService.AuthenticateAsync(loginRequest);
+
+                if (loginResponse == null)
+                {
+                    // Esto no debería ocurrir si el registro fue exitoso, pero es una salvaguarda
+                    return BadRequest(new { error = "Error al iniciar sesión después del registro." });
+                }
+
+                // El test espera una propiedad 'token', que está en LoginResponse
+                return CreatedAtAction(nameof(Login), new { username = registeredUser.Username }, loginResponse);
             }
             catch (InvalidOperationException ex)
             {
