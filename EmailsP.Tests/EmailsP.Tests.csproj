@@ -23,8 +23,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\EmailsP\EmailsP.csproj" />
-    <ProjectReference Include="..\Infraestructure\Infraestructure.csproj" />
+    <ProjectReference Include="..\EmailsP\EmailsP\EmailsP.csproj" />
+    <ProjectReference Include="..\EmailsP\Application\Application.csproj" />
+    <ProjectReference Include="..\EmailsP\Domain\Domain.csproj" />
+    <ProjectReference Include="..\EmailsP\Infraestructure\Infraestructure.csproj" />
   </ItemGroup>
 
 </Project>

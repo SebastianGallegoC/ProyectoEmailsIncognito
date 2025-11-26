@@ -12,10 +12,6 @@ jobs:
     name: Backend (.NET) - Build & Test
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: EmailsP
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,13 +22,13 @@ jobs:
           dotnet-version: "8.0.x"
 
       - name: Restore
-        run: dotnet restore
+        run: dotnet restore EmailsP/EmailsP.sln
 
       - name: Build
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build EmailsP/EmailsP.sln --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test --configuration Release --no-build --verbosity normal || echo "No tests found or tests failed - continuing"
+        run: dotnet test EmailsP/EmailsP.sln --configuration Release --no-build --verbosity normal || echo "No tests found or tests failed - continuing"
         continue-on-error: true
 
   frontend-ci:
