@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application", "Application\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infraestructure", "Infraestructure\Infraestructure.csproj", "{0763AFC2-328D-40CB-80F9-953A0FC2548C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmailsP.Tests", "EmailsP.Tests\EmailsP.Tests.csproj", "{F7F6B595-512C-4670-976E-4B18D24A605C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmailsP.Tests", "..\EmailsP.Tests\EmailsP.Tests.csproj", "{F7F6B595-512C-4670-976E-4B18D24A605C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
