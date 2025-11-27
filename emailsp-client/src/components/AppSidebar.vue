@@ -1,18 +1,18 @@
 <template>
-  <aside 
-    class="fixed left-0 top-0 h-screen w-64 bg-[#292A2D] shadow-2xl z-50 flex flex-col border-r border-[#3C4043]"
-  >
+  <aside class="fixed left-0 top-0 h-screen w-64 bg-[#292A2D] shadow-2xl z-50 flex flex-col border-r border-[#3C4043]">
     <!-- Logo/Header -->
     <div class="p-6 border-b border-[#3C4043]">
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-[#8AB4F8] to-[#669DF6] flex items-center justify-center">
+        <div
+          class="w-10 h-10 rounded-full bg-gradient-to-br from-[#8AB4F8] to-[#669DF6] flex items-center justify-center">
           <svg class="w-6 h-6 text-[#202124]" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+            <path
+              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
           </svg>
         </div>
         <div>
           <h1 class="text-[#E8EAED] font-semibold text-lg flex items-center gap-2">
-            EmailsP 
+            EmailsP
             <span class="text-xs bg-[#8AB4F8] text-[#202124] px-2 py-0.5 rounded-full">Anónimo</span>
           </h1>
           <p class="text-[#9AA0A6] text-xs flex items-center gap-1">
@@ -26,17 +26,11 @@
     <nav class="flex-1 p-4 overflow-y-auto">
       <ul class="space-y-2">
         <li v-for="item in menuItems" :key="item.path">
-          <router-link
-            :to="item.path"
-            class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group"
-            :class="isActive(item.path) 
-              ? 'bg-[#8AB4F8] text-[#202124] shadow-lg' 
-              : 'text-[#E8EAED] hover:bg-[#3C4043] hover:text-[#8AB4F8]'"
-          >
-            <component 
-              :is="item.icon" 
-              class="w-5 h-5 transition-transform group-hover:scale-110"
-            />
+          <router-link :to="item.path"
+            class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group" :class="isActive(item.path)
+              ? 'bg-[#8AB4F8] text-[#202124] shadow-lg'
+              : 'text-[#E8EAED] hover:bg-[#3C4043] hover:text-[#8AB4F8]'">
+            <component :is="item.icon" class="w-5 h-5 transition-transform group-hover:scale-110" />
             <span class="font-medium">{{ item.label }}</span>
           </router-link>
         </li>
@@ -52,13 +46,11 @@
           </div>
           <span class="text-[#E8EAED] text-sm font-medium">{{ username }}</span>
         </div>
-        <button
-          @click="handleLogout"
-          class="text-[#9AA0A6] hover:text-[#F28B82] transition-colors"
-          title="Cerrar sesión"
-        >
+        <button @click="handleLogout" class="text-[#9AA0A6] hover:text-[#F28B82] transition-colors"
+          title="Cerrar sesión">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
           </svg>
         </button>
       </div>
@@ -66,7 +58,7 @@
   </aside>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'

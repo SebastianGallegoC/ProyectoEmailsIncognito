@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-[#202124] flex">
     <!-- Sidebar -->
     <AppSidebar />
-    
+
     <!-- Main Content Area -->
     <main class="flex-1 ml-64 p-8">
       <div class="max-w-7xl mx-auto">
@@ -16,7 +16,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import AppSidebar from '@/components/AppSidebar.vue'
 </script>
 
