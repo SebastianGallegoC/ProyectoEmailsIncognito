@@ -1,4 +1,0 @@
-# Test requirements for local_ai_server.py
-# Only minimal dependencies needed - transformers is mocked
-pytest>=7.4.0
-flask>=2.3.0
