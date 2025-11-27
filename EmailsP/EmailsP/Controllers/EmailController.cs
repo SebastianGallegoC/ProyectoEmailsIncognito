@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 namespace EmailsP.Controllers
 {
     [ApiController]
-    [Route("[controllerjsjs]")]
+    [Route("[controller]")]
     [Produces("application/json")]
     public class EmailController : ControllerBase
     {
