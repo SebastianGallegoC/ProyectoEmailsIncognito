@@ -18,7 +18,7 @@ logger.info("Loading model google/flan-t5-base...")
 model = pipeline("text2text-generation", model="google/flan-t5-base", device=-1)
 logger.info("Model loaded successfully.")
 
-@app.route("/generate123", methods=["POST"])
+@app.route("/generate", methods=["POST"])
 def generate():
     try:
         data = request.get_json()
