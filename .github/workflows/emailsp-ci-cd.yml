@@ -51,13 +51,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint (optional)
-        run: npm run lint || echo "Lint not configured or failed - continuing"
-        continue-on-error: true
+      - name: Lint
+        run: npm run lint
 
-      - name: Unit tests (optional)
-        run: npm run test:unit || echo "Tests not configured or failed - continuing"
-        continue-on-error: true
+      - name: Unit tests
+        run: npm run test:unit
 
       - name: Build
         run: npm run build-only
