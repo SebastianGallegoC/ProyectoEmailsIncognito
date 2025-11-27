@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace EmailsP.Controllers
 {
     [ApiController]
-    [Route("api/[controllerxxx]")]
+    [Route("api/[controller]")]
     [Produces("application/json")]
     public class AuthController : ControllerBase
     {
