@@ -28,8 +28,7 @@ jobs:
         run: dotnet build EmailsP/EmailsP.sln --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test EmailsP/EmailsP.sln --configuration Release --no-build --verbosity normal || echo "No tests found or tests failed - continuing"
-        continue-on-error: true
+        run: dotnet test EmailsP/EmailsP.sln --configuration Release --no-build --verbosity normal
 
   frontend-ci:
     name: Frontend (Vue) - Build & Test
