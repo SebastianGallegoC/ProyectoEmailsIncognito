@@ -10,7 +10,8 @@ namespace Domain.Interfaces
 
         public EmailRepository(IConfiguration configuration)
         {
-            _connectionString = configuration.GetConnectionString("DefaultConnection");
+            _connectionString = configuration.GetConnectionString("DefaultConnection") 
+                ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found");
         }
 
         public async Task SaveEmailAsync(string to, string subject, string body)
